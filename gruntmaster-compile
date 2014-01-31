@@ -1,0 +1,23 @@
+#!/usr/bin/perl -w
+use v5.14;
+no if $] > 5.017011, warnings => 'experimental::smartmatch';
+
+use File::Copy qw/copy/;
+
+my ($format, $basename, $name) = @ARGV;
+my $ret = fork // die $!;
+if ($ret) {
+	$SIG{ALRM} = sub {kill KILL => $ret};
+	alarm 5;
+	wait;
+	exit $? >> 8
+} else {
+	given ($format){
+		exec 'gcc', qw/-DONLINE_JUDGE -std=gnu11 -Wextra -O2 -o/, $basename, $name when 'C';
+		exec 'g++', qw/-DONLINE_JUDGE -std=gnu++11 -fabi-version=6 -Wextra -O2 -o/, $basename, $name when 'CPP';
+		exec 'gmcs', '-d:ONLINE_JUDGE', $name when  'MONO';
+		exec 'javac', $name when 'JAVA';
+		exec 'fpc', qw/-dONLINE_JUDGE -O2 -n/, $name when 'PASCAL';
+		copy $name, $basename when ['PERL', 'PYTHON']
+	}
+}

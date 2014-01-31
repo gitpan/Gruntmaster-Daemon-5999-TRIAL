@@ -1,0 +1,16 @@
+#!/usr/bin/perl -w
+use v5.14;
+use strict;
+
+use BSD::Resource qw/setrlimit RLIMIT_AS RLIMIT_FSIZE/;
+use sigtrap qw/XFSZ/;
+
+##################################################
+
+my ($mlimit, $olimit, @args) = @ARGV;
+
+setrlimit RLIMIT_AS, $mlimit, $mlimit or die $! if $mlimit;
+setrlimit RLIMIT_FSIZE, $olimit, $olimit or die $! if $olimit;
+
+%ENV = (ONLINE_JUDGE => 1, PATH => $ENV{PATH}, HOME => $ENV{PATH});
+exec @args;
